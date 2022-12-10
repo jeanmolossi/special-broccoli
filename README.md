@@ -57,25 +57,25 @@ participant DynamoDB
 Client->>Service: ProcessCommand(cmd)
 Service->>+Repository: GetAggregateState(id)
 Repository->>+DynamoDB: 1. Aggregate - GetItem()
-DynamoDB-->>Repository: Aggregate Item
+DynamoDB--)Repository: Aggregate Item
 
 Note over Repository, DynamoDB: 2. Preparation phase<br />Loop last event map
 Repository->>DynamoDB: Event - PutItem()
-DynamoDB-->>Repository: Response
+DynamoDB--)Repository: Response
 
 Note over Repository, DynamoDB: Load last snapshot
 Repository->>DynamoDB: 3. Snapshopt - Query()
-DynamoDB-->>Repository: Snapshot Item
+DynamoDB--)Repository: Snapshot Item
 
 Note over Repository, DynamoDB: Load remaining Events
 Repository->>DynamoDB: 3. Event - Query()
-DynamoDB-->>-Repository: Event items
+DynamoDB--)-Repository: Event items
 
-Repository-->>-Service: Aggregate State
+Repository--)-Service: Aggregate State
 
 Service->>+Aggregate: <<create>> (AggregateState)
 Service->>Aggregate: ApplyCommand(cmd)
-Aggregate-->>-Service: CommandState
+Aggregate--)-Service: CommandState
 ```
 
 
@@ -84,7 +84,7 @@ Aggregate-->>-Service: CommandState
 | Path				| Method 		| Description					|
 | :----------------	| :------------	| :----------------------------	|
 | /accounts 		| **POST**		| Create User Account to Manage Wallets And Transactions |
-<!-- | /accounts 		| POST			| Create User Account to Manage Wallets And Transactions | -->>
+<!-- | /accounts 		| POST			| Create User Account to Manage Wallets And Transactions | -->
 
 # Additional Content
 
