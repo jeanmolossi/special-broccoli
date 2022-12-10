@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Finances
+
+  Sample SAM Template for Finances
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+
+Resources:
+  HTTPAPIGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+        LogGroupName: HTTPAPIGatewayLogGroup
+        RetentionInDays: 1
+
+  HTTPAPIGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+        AccessLogSettings:
+            DestinationArn: !GetAtt HTTPAPIGatewayLogGroup.Arn
+            Format: '{"requestId": "$context.requestId", "userAgent": "$context.identity.userAgent", "httpMethod": "$context.httpMethod", "path": "$context.path", "status": "$context.status", "protocol": "$context.protocol", "integrationStatus": "$context.integrationStatus", "responseLatency": "$context.responseLatency" }'
+        FailOnWarnings: true
+
+  EventHandlerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: event_handler/
+      Handler: event_handler
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Tracing: Active # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
+      Events:
+        HttpApiEvent:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Environment:
+        Variables:
+          ENVIRONMENT: development
+          DYNAMO_ENDPOINT: http://dynamodb-local:8000
