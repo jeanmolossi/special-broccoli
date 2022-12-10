@@ -11,6 +11,7 @@ This application was born to can deep knowledge about CQRS, serverless and Event
 - [Requirements](#requirements)
 - [Running](#running)
 - [About](#about)
+- [Resources](#resources)
 - [Additional Content](#additional-content)
 
 # Requirements
@@ -25,7 +26,7 @@ To be able to execute this application, you should have installed in your PC the
 
 # Running
 
-To run this application, you should run the **all** following commands:
+To run this application, ==you should run all== following commands:
 
 - Shell.1 - `make start`
 	- It will build application and prepare local APIGateway to perform requests
@@ -42,6 +43,48 @@ To build this application we use a lot of tools:
 - [APIGateway V2](https://docs.aws.amazon.com/apigateway/?icmpid=docs_homepage_networking)
 - [DynamoDB](https://docs.aws.amazon.com/dynamodb/?icmpid=docs_homepage_featuredsvcs)
 - [Lambda Functions](https://docs.aws.amazon.com/lambda/?icmpid=docs_homepage_featuredsvcs)
+
+### Load Aggregate
+
+```mermaid
+sequenceDiagram
+actor Client
+participant Service
+participant Aggregate
+participant Repository
+participant DynamoDB
+
+Client->>Service: ProcessCommand(cmd)
+Service->>+Repository: GetAggregateState(id)
+Repository->>+DynamoDB: 1. Aggregate - GetItem()
+DynamoDB-->>Repository: Aggregate Item
+
+Note over Repository, DynamoDB: 2. Preparation phase<br />Loop last event map
+Repository->>DynamoDB: Event - PutItem()
+DynamoDB-->>Repository: Response
+
+Note over Repository, DynamoDB: Load last snapshot
+Repository->>DynamoDB: 3. Snapshopt - Query()
+DynamoDB-->>Repository: Snapshot Item
+
+Note over Repository, DynamoDB: Load remaining Events
+Repository->>DynamoDB: 3. Event - Query()
+DynamoDB-->>-Repository: Event items
+
+Repository-->>-Service: Aggregate State
+
+Service->>+Aggregate: <<create>> (AggregateState)
+Service->>Aggregate: ApplyCommand(cmd)
+Aggregate-->>-Service: CommandState
+```
+
+
+# Resources
+
+| Path				| Method 		| Description					|
+| :----------------	| :------------	| :----------------------------	|
+| /accounts 		| **POST**		| Create User Account to Manage Wallets And Transactions |
+<!-- | /accounts 		| POST			| Create User Account to Manage Wallets And Transactions | -->>
 
 # Additional Content
 
